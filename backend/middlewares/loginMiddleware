@@ -1,0 +1,30 @@
+const dotenv = require("dotenv");
+const Users = require("../models/user.model");
+const base64 = require("js-base64");
+
+dotenv.config();
+const login = async (req, res, next) => {
+  const password = req.body.password;
+  const user = await Users.findOne({ email: req.body.email }).lean();
+  console.log(user);
+  if (user) {
+    const decodedPassword = base64.decode(user.password);
+    if (password === decodedPassword) {
+      req.user = user;
+      next();
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Wrong Password",
+      });
+    }
+  } else {
+    res.status(404).json({
+      success: false,
+      message: "This Email is not registered",
+    });
+  }
+};
+module.exports = {
+  login,
+};
